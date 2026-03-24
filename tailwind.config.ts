@@ -9,24 +9,40 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: {
-          50: '#eef2ff',
-          100: '#e0e7ff',
-          500: '#6366f1',
-          600: '#4f46e5',
-          700: '#4338ca',
+        cream: '#F5F4F0',
+        accent: {
+          DEFAULT: '#C17B3C',
+          50: '#FAF2E8',
+          100: '#F0D9B8',
+          200: '#E0BC8A',
+          500: '#C17B3C',
+          600: '#A56530',
+        },
+        warm: {
+          50: '#FAFAF7',
+          100: '#F5F4F0',
+          200: '#EDE9E1',
+          300: '#D4CEC4',
+          400: '#8C8C7A',
+          500: '#5C5C4A',
+          700: '#2C2C1E',
+          900: '#18180F',
         },
         category: {
-          food: '#f97316',
-          meal: '#ec4899',
-          household: '#8b5cf6',
-          homeware: '#06b6d4',
-          others: '#6366f1',
-          subscription: '#14b8a6',
+          food: '#E8C17A',
+          meal: '#E09484',
+          household: '#96BAA0',
+          homeware: '#7EA8C4',
+          subscription: '#88B8B4',
+          others: '#C0B4A8',
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        serif: ['var(--font-dm-serif)', 'Georgia', 'serif'],
+        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+      },
+      borderRadius: {
+        '3xl': '1.5rem',
       },
     },
   },

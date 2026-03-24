@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { OcrResult, OcrItem, Category, SubCategory, Profile, SubscriptionCycle, SUBSCRIPTION_CYCLES } from '@/types'
-import { Camera, Upload, X, Plus, Trash2, ChevronDown, Loader2, CheckCircle } from 'lucide-react'
+import { Camera, Upload, X, Plus, Trash2, ChevronDown, Loader2, CheckCircle, ScanLine } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 
@@ -62,7 +62,6 @@ export default function ScanPage() {
     await loadMetadata()
 
     try {
-      // Compress image and convert to base64 for reliable Vercel delivery
       const base64Image = await compressToBase64(file, 1600)
       const res = await fetch('/api/ocr', {
         method: 'POST',
@@ -168,50 +167,63 @@ export default function ScanPage() {
     setTimeout(() => router.push('/dashboard'), 1500)
   }
 
+  // ── Done state ──
   if (step === 'done') {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-3">
-        <CheckCircle size={48} className="text-emerald-500" />
-        <p className="text-lg font-semibold text-gray-900">Receipt saved!</p>
-        <p className="text-sm text-gray-500">Redirecting to dashboard…</p>
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center">
+          <CheckCircle size={32} className="text-emerald-500" />
+        </div>
+        <p className="font-serif text-2xl text-warm-900">Receipt saved!</p>
+        <p className="text-sm text-warm-400">Redirecting to dashboard…</p>
       </div>
     )
   }
 
+  // ── Saving state ──
   if (step === 'saving') {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-3">
-        <Loader2 size={36} className="text-indigo-500 animate-spin" />
-        <p className="text-sm text-gray-500">Saving receipt…</p>
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <Loader2 size={32} className="text-accent animate-spin" />
+        <p className="text-sm text-warm-400">Saving receipt…</p>
       </div>
     )
   }
 
+  // ── Capture state ──
   if (step === 'capture') {
     return (
-      <div className="flex flex-col min-h-screen px-4 pt-12 pb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Scan Receipt</h1>
-        <p className="text-gray-500 text-sm mb-8">Take a photo or upload an image of your receipt</p>
+      <div className="flex flex-col min-h-screen px-5 pt-12 pb-8 lg:px-10">
+        <div className="mb-8">
+          <h1 className="font-serif text-4xl lg:text-5xl text-warm-900 leading-none mb-2">Scan</h1>
+          <p className="text-warm-400 text-sm">Take a photo or upload a receipt image</p>
+        </div>
 
         {ocrLoading ? (
-          <div className="flex-1 flex flex-col items-center justify-center gap-4">
-            <Loader2 size={40} className="text-indigo-500 animate-spin" />
-            <p className="text-gray-600 font-medium">Reading your receipt…</p>
-            <p className="text-gray-400 text-sm">This takes a few seconds</p>
+          <div className="flex-1 flex flex-col items-center justify-center gap-5">
+            <Loader2 size={36} className="text-accent animate-spin" />
+            <div className="text-center">
+              <p className="text-warm-700 font-medium mb-1">Reading your receipt…</p>
+              <p className="text-warm-400 text-sm">This takes a few seconds</p>
+            </div>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col gap-4">
+          <div className="flex-1 flex flex-col gap-3 max-w-md lg:max-w-lg">
+            {/* Camera button */}
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="flex-1 min-h-[200px] border-2 border-dashed border-indigo-200 rounded-2xl flex flex-col items-center justify-center gap-3 bg-indigo-50 hover:bg-indigo-100 transition active:scale-98"
+              className="flex-1 min-h-[200px] border-2 border-dashed border-warm-300 rounded-3xl flex flex-col items-center justify-center gap-4 bg-white hover:bg-warm-50 hover:border-accent/50 transition-all"
             >
-              <div className="w-16 h-16 bg-indigo-500 rounded-2xl flex items-center justify-center">
+              <div className="w-16 h-16 bg-accent rounded-2xl flex items-center justify-center">
                 <Camera size={28} className="text-white" />
               </div>
-              <p className="text-indigo-700 font-semibold">Take a photo</p>
-              <p className="text-indigo-400 text-sm">Opens your camera</p>
+              <div className="text-center">
+                <p className="text-warm-700 font-medium">Take a photo</p>
+                <p className="text-warm-400 text-sm mt-0.5">Opens your camera</p>
+              </div>
             </button>
 
+            {/* Upload button */}
             <button
               onClick={() => {
                 if (fileInputRef.current) {
@@ -219,20 +231,21 @@ export default function ScanPage() {
                   fileInputRef.current.click()
                 }
               }}
-              className="flex items-center justify-center gap-3 py-4 border border-gray-200 rounded-2xl bg-white hover:bg-gray-50 transition"
+              className="flex items-center justify-center gap-3 py-4 border border-warm-200 rounded-2xl bg-white hover:bg-warm-50 transition-colors"
             >
-              <Upload size={18} className="text-gray-500" />
-              <span className="text-gray-700 font-medium">Upload from gallery</span>
+              <Upload size={17} className="text-warm-500" />
+              <span className="text-warm-700 font-medium text-sm">Upload from gallery</span>
             </button>
 
+            {/* Manual entry */}
             <button
               onClick={async () => {
                 await loadMetadata()
                 setStep('review')
               }}
-              className="text-center text-sm text-indigo-500 py-2"
+              className="text-center text-sm text-accent hover:text-accent-600 transition-colors py-2"
             >
-              Add items manually instead →
+              Add items manually →
             </button>
           </div>
         )}
@@ -249,54 +262,57 @@ export default function ScanPage() {
     )
   }
 
-  // Review step
+  // ── Review state ──
   const total = items.reduce((sum, item) => sum + item.finalPrice * item.finalQuantity, 0)
 
   return (
-    <div className="px-4 pt-6 pb-4">
+    <div className="px-5 pt-8 pb-6 lg:px-10 space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-5">
-        <h1 className="text-xl font-bold text-gray-900">Review Items</h1>
-        <button onClick={() => setStep('capture')} className="text-sm text-gray-500 flex items-center gap-1">
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="font-serif text-3xl text-warm-900 leading-none">Review</h1>
+        <button
+          onClick={() => setStep('capture')}
+          className="flex items-center gap-1.5 text-sm text-warm-400 hover:text-warm-700 transition-colors"
+        >
           <X size={14} /> Discard
         </button>
       </div>
 
       {ocrError && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 text-sm text-amber-700">
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 text-sm text-amber-700">
           {ocrError}
         </div>
       )}
 
       {/* Store + Date */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-4 space-y-3">
+      <div className="bg-white rounded-3xl p-5 border border-warm-200 space-y-4">
         <div>
-          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">
-            Store name *
+          <label className="text-xs font-medium text-warm-400 uppercase tracking-widest block mb-1.5">
+            Store *
           </label>
           <input
             type="text"
             value={storeName}
             onChange={(e) => setStoreName(e.target.value)}
             placeholder="e.g. Tesco, Sainsbury's…"
-            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-full px-4 py-3 rounded-2xl border border-warm-200 bg-warm-50 text-warm-900 text-sm placeholder:text-warm-400 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/50 transition"
           />
         </div>
         <div>
-          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">
+          <label className="text-xs font-medium text-warm-400 uppercase tracking-widest block mb-1.5">
             Date
           </label>
           <input
             type="date"
             value={purchaseDate}
             onChange={(e) => setPurchaseDate(e.target.value)}
-            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-full px-4 py-3 rounded-2xl border border-warm-200 bg-warm-50 text-warm-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/50 transition"
           />
         </div>
       </div>
 
       {/* Items */}
-      <div className="space-y-3 mb-4">
+      <div className="space-y-3">
         {items.map((item) => (
           <ItemCard
             key={item.tempId}
@@ -311,22 +327,22 @@ export default function ScanPage() {
 
         <button
           onClick={addItem}
-          className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-gray-200 rounded-2xl text-sm text-gray-500 hover:border-indigo-300 hover:text-indigo-500 transition"
+          className="w-full flex items-center justify-center gap-2 py-3.5 border-2 border-dashed border-warm-200 rounded-2xl text-sm text-warm-400 hover:border-accent/40 hover:text-accent transition-colors"
         >
-          <Plus size={16} /> Add item
+          <Plus size={15} /> Add item
         </button>
       </div>
 
       {/* Total + Save */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+      <div className="bg-white rounded-3xl p-5 border border-warm-200">
         <div className="flex items-center justify-between mb-4">
-          <span className="text-sm font-medium text-gray-600">Total</span>
-          <span className="text-lg font-bold text-gray-900">£{total.toFixed(2)}</span>
+          <span className="text-sm text-warm-400">Total</span>
+          <span className="font-serif text-2xl text-warm-900">£{total.toFixed(2)}</span>
         </div>
         <button
           onClick={saveReceipt}
           disabled={!storeName.trim()}
-          className="w-full bg-indigo-500 hover:bg-indigo-600 disabled:bg-gray-200 disabled:text-gray-400 text-white font-semibold py-3 rounded-xl transition"
+          className="w-full bg-accent hover:bg-accent-600 disabled:bg-warm-200 disabled:text-warm-400 text-white font-medium py-3.5 rounded-2xl transition-colors"
         >
           Save Receipt
         </button>
@@ -334,6 +350,8 @@ export default function ScanPage() {
     </div>
   )
 }
+
+// ── Utilities ──
 
 function compressToBase64(file: File, maxPx: number): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -349,14 +367,16 @@ function compressToBase64(file: File, maxPx: number): Promise<string> {
       canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
       URL.revokeObjectURL(url)
       const dataUrl = canvas.toDataURL('image/jpeg', 0.92)
-      resolve(dataUrl.split(',')[1]) // strip "data:image/jpeg;base64,"
+      resolve(dataUrl.split(',')[1])
     }
     img.onerror = reject
     img.src = url
   })
 }
 
-function ItemCard({ item, categories, subCategories, members, onChange, onRemove }: {
+function ItemCard({
+  item, categories, subCategories, members, onChange, onRemove
+}: {
   item: EditableItem
   categories: Category[]
   subCategories: SubCategory[]
@@ -369,8 +389,7 @@ function ItemCard({ item, categories, subCategories, members, onChange, onRemove
   const filteredSubs = subCategories.filter((s) => s.category_id === item.category_id)
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-      {/* Main row */}
+    <div className="bg-white rounded-3xl border border-warm-200 overflow-hidden">
       <div className="p-4">
         <div className="flex items-start gap-2 mb-3">
           <input
@@ -378,54 +397,53 @@ function ItemCard({ item, categories, subCategories, members, onChange, onRemove
             value={item.description}
             onChange={(e) => onChange('description', e.target.value)}
             placeholder="Item name"
-            className="flex-1 text-sm font-medium text-gray-900 bg-transparent border-b border-gray-200 pb-1 focus:outline-none focus:border-indigo-500"
+            className="flex-1 text-sm font-medium text-warm-900 bg-transparent border-b border-warm-200 pb-1.5 focus:outline-none focus:border-accent transition-colors"
           />
-          <button onClick={onRemove} className="text-gray-300 hover:text-red-400 transition mt-0.5">
-            <Trash2 size={15} />
+          <button onClick={onRemove} className="text-warm-300 hover:text-red-400 transition-colors mt-0.5">
+            <Trash2 size={14} />
           </button>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1">
-            <span className="text-xs text-gray-400">Qty</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-warm-400">Qty</span>
             <input
               type="number"
               min="1"
               value={item.finalQuantity}
               onChange={(e) => onChange('finalQuantity', parseInt(e.target.value) || 1)}
-              className="w-10 text-sm text-center border border-gray-200 rounded-lg py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="w-10 text-sm text-center border border-warm-200 rounded-xl py-1 focus:outline-none focus:ring-1 focus:ring-accent/40 transition"
             />
           </div>
           <div className="flex items-center gap-1 flex-1">
-            <span className="text-xs text-gray-400">£</span>
+            <span className="text-xs text-warm-400">£</span>
             <input
               type="number"
               min="0"
               step="0.01"
               value={item.finalPrice}
               onChange={(e) => onChange('finalPrice', parseFloat(e.target.value) || 0)}
-              className="w-20 text-sm border border-gray-200 rounded-lg py-1 px-2 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="w-20 text-sm border border-warm-200 rounded-xl py-1 px-2 focus:outline-none focus:ring-1 focus:ring-accent/40 transition"
             />
           </div>
-          <span className="text-sm font-semibold text-gray-800">
+          <span className="text-sm font-semibold text-warm-700">
             £{(item.finalPrice * item.finalQuantity).toFixed(2)}
           </span>
-          <button onClick={() => setExpanded(!expanded)} className="text-gray-400">
-            <ChevronDown size={16} className={cn('transition', expanded && 'rotate-180')} />
+          <button onClick={() => setExpanded(!expanded)} className="text-warm-400 hover:text-warm-700 transition-colors">
+            <ChevronDown size={16} className={cn('transition-transform', expanded && 'rotate-180')} />
           </button>
         </div>
       </div>
 
-      {/* Expanded options */}
       {expanded && (
-        <div className="px-4 pb-4 pt-1 border-t border-gray-50 space-y-3">
+        <div className="px-4 pb-4 pt-3 border-t border-warm-100 space-y-3">
           {/* Category */}
           <div>
-            <label className="text-xs text-gray-500 block mb-1">Category</label>
+            <label className="text-xs text-warm-400 block mb-1.5">Category</label>
             <select
               value={item.category_id}
               onChange={(e) => { onChange('category_id', e.target.value); onChange('sub_category_id', '') }}
-              className="w-full text-sm border border-gray-200 rounded-xl py-2 px-3 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full text-sm border border-warm-200 rounded-2xl py-2 px-3 bg-warm-50 text-warm-900 focus:outline-none focus:ring-2 focus:ring-accent/30 transition"
             >
               <option value="">Select category</option>
               {categories.map((cat) => (
@@ -434,14 +452,13 @@ function ItemCard({ item, categories, subCategories, members, onChange, onRemove
             </select>
           </div>
 
-          {/* Sub-category */}
           {filteredSubs.length > 0 && (
             <div>
-              <label className="text-xs text-gray-500 block mb-1">Sub-category</label>
+              <label className="text-xs text-warm-400 block mb-1.5">Sub-category</label>
               <select
                 value={item.sub_category_id}
                 onChange={(e) => onChange('sub_category_id', e.target.value)}
-                className="w-full text-sm border border-gray-200 rounded-xl py-2 px-3 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full text-sm border border-warm-200 rounded-2xl py-2 px-3 bg-warm-50 text-warm-900 focus:outline-none focus:ring-2 focus:ring-accent/30 transition"
               >
                 <option value="">Select sub-category</option>
                 {filteredSubs.map((sub) => (
@@ -451,20 +468,19 @@ function ItemCard({ item, categories, subCategories, members, onChange, onRemove
             </div>
           )}
 
-          {/* Subscription cycle */}
           {selectedCat?.is_subscription && (
             <div>
-              <label className="text-xs text-gray-500 block mb-1">Payment cycle</label>
+              <label className="text-xs text-warm-400 block mb-1.5">Payment cycle</label>
               <div className="flex gap-2 flex-wrap">
                 {SUBSCRIPTION_CYCLES.map((cycle) => (
                   <button
                     key={cycle.value}
                     onClick={() => onChange('subscription_cycle', item.subscription_cycle === cycle.value ? '' : cycle.value)}
                     className={cn(
-                      'text-xs px-3 py-1.5 rounded-full border transition',
+                      'text-xs px-3 py-1.5 rounded-full border transition-colors',
                       item.subscription_cycle === cycle.value
-                        ? 'bg-teal-500 text-white border-teal-500'
-                        : 'border-gray-200 text-gray-600 hover:border-teal-300'
+                        ? 'bg-warm-900 text-white border-warm-900'
+                        : 'border-warm-200 text-warm-500 hover:border-warm-400'
                     )}
                   >
                     {cycle.label}
@@ -472,22 +488,23 @@ function ItemCard({ item, categories, subCategories, members, onChange, onRemove
                 ))}
               </div>
               {item.subscription_cycle && (
-                <p className="text-xs text-teal-600 mt-1.5">
+                <p className="text-xs text-accent mt-1.5">
                   ≈ £{(item.finalPrice / SUBSCRIPTION_CYCLES.find(c => c.value === item.subscription_cycle)!.months).toFixed(2)}/month
                 </p>
               )}
             </div>
           )}
 
-          {/* For member */}
           {members.length > 1 && (
             <div>
-              <label className="text-xs text-gray-500 block mb-1">For</label>
+              <label className="text-xs text-warm-400 block mb-1.5">For</label>
               <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={() => onChange('for_member', '')}
-                  className={cn('text-xs px-3 py-1.5 rounded-full border transition',
-                    !item.for_member ? 'bg-gray-800 text-white border-gray-800' : 'border-gray-200 text-gray-600')}
+                  className={cn('text-xs px-3 py-1.5 rounded-full border transition-colors',
+                    !item.for_member
+                      ? 'bg-warm-900 text-white border-warm-900'
+                      : 'border-warm-200 text-warm-500 hover:border-warm-400')}
                 >
                   Everyone
                 </button>
@@ -495,8 +512,10 @@ function ItemCard({ item, categories, subCategories, members, onChange, onRemove
                   <button
                     key={member.id}
                     onClick={() => onChange('for_member', item.for_member === member.id ? '' : member.id)}
-                    className={cn('text-xs px-3 py-1.5 rounded-full border transition',
-                      item.for_member === member.id ? 'bg-indigo-500 text-white border-indigo-500' : 'border-gray-200 text-gray-600')}
+                    className={cn('text-xs px-3 py-1.5 rounded-full border transition-colors',
+                      item.for_member === member.id
+                        ? 'bg-accent text-white border-accent'
+                        : 'border-warm-200 text-warm-500 hover:border-warm-400')}
                   >
                     {member.display_name}
                   </button>
